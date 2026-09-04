@@ -7,11 +7,7 @@ plt.rcParams["font.family"] = "STIXGeneral"
 plt.rcParams["font.size"] = 17
 
 
-def linear_fit(z, z_err):
-    t = np.array([31.58, 45.82, 60.03])
-    z_err = np.array([7.5896194348802055, 2.074269258363188, 3.2388620141653064])
-    z = np.array([ 278.33428541524495, 288.3653204782002, 306.6049519873934 ])
-
+def linear_fit(t, z, z_err, nofit=False, dataset=None):
     p_opt, p_cov = scipy.optimize.curve_fit(
         lambda x, m, b: m * x + b, t, z, sigma=z_err, absolute_sigma=True
     )
@@ -24,14 +20,22 @@ def linear_fit(z, z_err):
     # print(f"b = {b:.2e} +- {b_err:.2e}")
 
     plt.errorbar(t, z, yerr=z_err, fmt="o")
-    plt.plot(t, m*t+b, color="black", label=
-             "$z(t) = at + b$\n"
-             fr"$a = ({m:.1f}\pm{m_err:.1f})$ nm/s"
-             "\n"
-             fr"$b = ({b:.1f}\pm{b_err:.1f})$ nm/s"
-         )
 
-    plt.legend()
+    if not nofit:
+        plt.plot(
+            t,
+            m * t + b,
+            color="black",
+            label="$z(t) = at + b$\n"
+            rf"$a = ({m:.1f}\pm{m_err:.1f})$ nm/s"
+            "\n"
+            rf"$b = ({b:.1f}\pm{b_err:.1f})$ nm/s",
+        )
+
+        plt.legend()
+
+    if dataset:
+        plt.title(", ".join(dataset))
 
     plt.xlabel("Tiempo [s]")
     plt.ylabel("Altura comida [nm]")

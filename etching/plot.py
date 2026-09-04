@@ -3,29 +3,30 @@ import numpy as np
 from util import meshgrid
 
 
-def surface(z, pixel_size=1, ax=None, **kwargs):
+def surface(z, pixel_size=1, ax=None, title=None, **kwargs):
     x, y = meshgrid(z)
     fig = None
 
     if ax is None:
-        fig = plt.figure()
+        fig = plt.figure(tight_layout=True)
         ax = fig.add_subplot(111, projection="3d")
 
     surf = ax.plot_surface(x, y, z, cmap="viridis", **kwargs)
 
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
+    ax.set_xlabel(r"X [$\mu$m]")
+    ax.set_ylabel(r"Y [$\mu$m]")
+    ax.set_zlabel("Z [nm]")
+    ax.set_title(title)
 
-    if fig is not None:
-        fig.colorbar(surf, ax=ax, label="Z")
+    # if fig is not None:
+    #     fig.colorbar(surf, ax=ax, label="Z")
 
     return ax
 
 
-def colormap(z, pixel_size=1):
-    x = np.arange(0, z.shape[1], pixel_size)
-    y = np.arange(0, z.shape[0], pixel_size)
+def colormap(z, pixel_size=1, title=None):
+    x = np.arange(0, z.shape[1]) * pixel_size
+    y = np.arange(0, z.shape[0]) * pixel_size
 
     plt.imshow(
         z,
@@ -34,8 +35,11 @@ def colormap(z, pixel_size=1):
         extent=[x.min(), x.max(), y.min(), y.max()],
         aspect="auto",
     )
+    plt.xlabel(r"X [$\mu$m]")
+    plt.ylabel(r"Y [$\mu$m]")
+    plt.title(title)
 
-    plt.colorbar(label="Z")
+    plt.colorbar(label="Z [nm]")
 
 
 def histogram(z, ax=None):
