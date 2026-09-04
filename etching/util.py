@@ -151,9 +151,17 @@ def show_or_save():
 
     if config.SAVE_PLOT:
         config.PLOT_DIR.mkdir(exist_ok=True, parents=True)
-        name = config.FILE or config.DATASET
 
-        plt.savefig(config.PLOT_DIR / f"{name}-{config.COMMAND}.png")
+        file = None
+        if config.FILE:
+            file = config.FILE.name
+
+        name = file or config.DATASET
+
+        path = config.PLOT_DIR / f"{name}-{config.COMMAND}.png"
+        print(f"Saving plot into {path}")
+
+        plt.savefig(path)
 
     else:
         plt.show()

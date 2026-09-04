@@ -2,7 +2,6 @@ import logging
 import sys
 from pathlib import Path
 
-# from config import COMMAND, DATA_DIR, DATASET, FILE, SAVE_PLOT, config, datasets
 import config
 import matplotlib.pyplot as plt
 import numpy as np
@@ -67,7 +66,7 @@ def do_dataset(command, dataset):
 
         case "fit":
             z, z_err = find_params(files)
-            t = np.array([config[name]["time"] for name in dset])
+            t = np.array([config.config[name]["time"] for name in dset])
 
             linear_fit(t, z, z_err, dataset=dset)
 
@@ -89,15 +88,15 @@ def main(
     file=None,
 ):
     command, config.COMMAND = sync(command, config.COMMAND)
-    file, config.FILE = sync(file, config.FILE)
-    dataset, config.DATASET = sync(dataset, config.DATASET)
 
     if dataset:
+        dataset, config.DATASET = sync(dataset, config.DATASET)
         do_dataset(command, dataset)
 
     elif file:
-        filepath = Path(file)
-        do_file(command, filepath)
+        file = Path(file)
+        file, config.FILE = sync(file, config.FILE)
+        do_file(command, file)
 
     else:
         logger.error("Pass either dataset of file, but not both.")

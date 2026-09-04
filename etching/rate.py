@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize
 
+from util import show_or_save
+
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["font.family"] = "STIXGeneral"
 plt.rcParams["font.size"] = 17
@@ -40,4 +42,4 @@ def linear_fit(t, z, z_err, nofit=False, dataset=None):
     plt.xlabel("Tiempo [s]")
     plt.ylabel("Altura comida [nm]")
     plt.tight_layout()
-    plt.show()
+    show_or_save()
