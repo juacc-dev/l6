@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,22 +7,23 @@ import config
 
 logger = logging.getLogger("main")
 
-Z_MIN = 150
+Z_MIN = 50
 Z_MAX = 430
 
 STEP_NM = 0.5
 
 
-def read_csv(filepath):
+def read_csv_old(filepath):
     with open(filepath, "r") as file:
         lines = file.readlines()
 
     for i, line in enumerate(lines):
         if line.startswith("RAW_DATA"):
-            start = i
+            start = i + 1
 
         elif line.startswith("Intensity"):
             end = i
+            break
 
         elif line.startswith("Pixel_size"):
             pixel_size = float(line.split()[-1]) * 1e3
@@ -36,6 +38,66 @@ def read_csv(filepath):
     z *= 1e3  # nanometros
 
     return z, pixel_size
+
+
+def read_csv_gwyddion(filepath):
+    with open(filepath, "r") as file:
+        lines = file.readlines()
+
+    for i, line in enumerate(lines):
+        if not line.startswith("#"):
+            start = i
+            break
+
+        elif line.startswith("# Width:"):
+            width = float(line.split()[-2])  # units: um
+
+        elif line.startswith("# Height:"):
+            height = float(line.split()[-2])  # units: um
+
+    z = (
+        np.genfromtxt(
+            lines[start:],
+            delimiter="\t",
+            missing_values="Bad",
+            filling_values=np.nan,
+        )
+        * 1e9
+    )
+
+    x_size = z[0, :].size
+    z = z.T[:, ::-1]
+
+    pixel_size = width / x_size
+
+    return z, pixel_size
+
+
+def read_csv_simple(filepath):
+    with open(filepath, "r") as file:
+        lines = file.readlines()
+
+    for i, line in enumerate(lines):
+        if not line.startswith("#"):
+            start = i
+            break
+
+        elif line.startswith("# Pixel_size:"):
+            pixel_size = float(line.split()[-1]) * 1e3
+
+    z = np.genfromtxt(lines[start:], delimiter=",") * 1e9
+
+    return z, pixel_size
+
+
+def read_csv(filepath):
+    if config.config.get(filepath.stem, {}).get("type", "") == "wyko":
+        return read_csv_old(filepath)
+
+    if config.config.get(filepath.stem, {}).get("type", "") == "gwyddion":
+        return read_csv_gwyddion(filepath)
+
+    return read_csv_simple(filepath)
 
 
 def meshgrid(z):
@@ -99,8 +161,9 @@ def high_region(z, name, pixel_size):
 
 
 def low_region(z, name):
-    r = config.config[name]["limits"]
     z = z[~np.isnan(z)]
+
+    r = config.config[name].get("limits", None)
 
     if r is None:
         r = [Z_MIN, Z_MAX]
@@ -120,7 +183,7 @@ def get_z(file):
     z_plane = high_region(z, file.stem, pixel_size)
 
     if z_plane is None:
-        return -1 * z, None, None, pixel_size
+        return -1 * z, None, pixel_size
 
     params = fit(z_plane)
 
@@ -128,7 +191,7 @@ def get_z(file):
 
     a, b, _ = params
     normal = np.array([-a, -b, 1])
-    height_factor = np.linalg.norm(normal)
+    height_factor = 1 / np.linalg.norm(normal)
     z *= height_factor
 
     z_high = high_region(z, file.stem, pixel_size)
@@ -141,7 +204,6 @@ def get_z(file):
 
     z_low = low_region(z, file.stem)
 
-    z_high = filter_nan(z_high)
     z_low = filter_nan(z_low)
 
     return z, z_low, pixel_size

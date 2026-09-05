@@ -145,3 +145,10 @@ def all_hists(files):
         title=",".join([file.stem for file in files]),
     )
     show_or_save()
+
+
+def print_bottom(file):
+    _, z_low, _ = get_z(file)
+
+    bottom, err, _, _ = get_bottom(z_low)
+    print(f"{file.stem}: z = {bottom:.1f} +- {err:.1f}")

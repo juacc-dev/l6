@@ -12,6 +12,7 @@ from commands import (
     full_hist,
     hist,
     inspect_cut,
+    print_bottom,
     raw,
     show_2D,
     show_3D,
@@ -44,6 +45,9 @@ def do_file(command, file):
 
         case "3d":
             show_3D(file)
+
+        case "z":
+            print_bottom(file)
 
         case "hist":
             hist(file)
@@ -116,7 +120,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.data:
-        config.DATA_DIR = args.data
+        config.DATA_DIR = Path(args.data)
 
     if args.saveplot:
         config.SAVE_PLOT = True
