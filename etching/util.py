@@ -100,26 +100,29 @@ def read_csv(filepath):
     return read_csv_simple(filepath)
 
 
-def meshgrid(z):
-    x, y = np.meshgrid(np.arange(z.shape[1]), np.arange(z.shape[0]))
+def meshgrid(z, pixel_size=1):
+    x = np.arange(z.shape[1]) * pixel_size
+    y = np.arange(z.shape[0]) * pixel_size
 
-    return x, y
+    X, Y = np.meshgrid(x, y)
+
+    return X, Y
 
 
-def fit(z):
-    x, y = meshgrid(z)
+def fit(z, pixel_size=1):
+    x, y = meshgrid(z, pixel_size)
 
     mask = np.isfinite(z)
 
-    domain = np.column_stack((x[mask], y[mask], np.ones(np.sum(mask))))
+    A = np.column_stack((x[mask], y[mask], np.ones(np.sum(mask))))
 
-    params = np.linalg.lstsq(domain, z[mask], rcond=None)[0]
+    params = np.linalg.lstsq(A, z[mask], rcond=None)[0]
 
     return params
 
 
-def plane(z, params):
-    x, y = meshgrid(z)
+def plane(z, params, pixel_size=1):
+    x, y = meshgrid(z, pixel_size)
     a, b, c = params
 
     z_fit = a * x + b * y + c
@@ -185,14 +188,14 @@ def get_z(file):
     if z_plane is None:
         return -1 * z, None, pixel_size
 
-    params = fit(z_plane)
+    params = fit(z_plane, pixel_size)
 
-    z -= plane(z, params)
+    z -= plane(z, params, pixel_size)
 
-    a, b, _ = params
-    normal = np.array([-a, -b, 1])
-    height_factor = 1 / np.linalg.norm(normal)
-    z *= height_factor
+    # a, b, _ = params
+    # normal = np.array([-a, -b, 1])
+    # height_factor = 1 / np.linalg.norm(normal)
+    # z *= height_factor
 
     z_high = high_region(z, file.stem, pixel_size)
 
@@ -203,8 +206,6 @@ def get_z(file):
     z *= -1
 
     z_low = low_region(z, file.stem)
-
-    z_low = filter_nan(z_low)
 
     return z, z_low, pixel_size
 
@@ -227,3 +228,9 @@ def show_or_save():
 
     else:
         plt.show()
+
+
+# def estimate_high_region(z, pixel_size):
+#     x = np.arange(z.shape[1], pixel_size)
+#     y = np.arange(z.shape[0], pixel_size)
+#     pass

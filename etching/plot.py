@@ -4,7 +4,7 @@ from util import meshgrid
 
 
 def surface(z, pixel_size=1, ax=None, title=None, **kwargs):
-    x, y = meshgrid(z)
+    x, y = meshgrid(z, pixel_size)
     fig = None
 
     if ax is None:
