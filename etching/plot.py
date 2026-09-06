@@ -24,7 +24,7 @@ def surface(z, pixel_size=1, ax=None, title=None, **kwargs):
     return ax
 
 
-def colormap(z, pixel_size=1, title=None):
+def colormap(z, pixel_size=1, title=None, units=r"$\mu$m"):
     x = np.arange(0, z.shape[1]) * pixel_size
     y = np.arange(0, z.shape[0]) * pixel_size
 
@@ -35,8 +35,8 @@ def colormap(z, pixel_size=1, title=None):
         extent=[x.min(), x.max(), y.min(), y.max()],
         aspect="auto",
     )
-    plt.xlabel(r"X [$\mu$m]")
-    plt.ylabel(r"Y [$\mu$m]")
+    plt.xlabel(f"X [{units}]")
+    plt.ylabel(f"Y [{units}]")
     plt.title(title)
 
     plt.colorbar(label="Z [nm]")

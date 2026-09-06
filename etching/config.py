@@ -18,61 +18,40 @@ datasets = {
 
 
 config = {
-    # "2": {
-    #     "time": 31.58,
-    #     "plane": [56, -1, 0, 60],
-    #     "limits": None,
-    #     "cut": (None, 50),
-    #     "type": "csv",
-    # },
-    # "3": {
-    #     "time": 45.82,
-    #     "plane": [60, -1, 0, 60],
-    #     "limits": None,
-    #     "cut": (None, 77),
-    #     "type": "wyko",
-    # },
-    # "4": {
-    #     "time": 60.03,
-    #     "plane": [25, 60, 70, -1],
-    #     "limits": None,
-    #     "cut": (40, None),
-    #     "type": "wyko",
-    # },
     "5": {
         "time": 31.29,
-        "plane": [70, -1, 0, 35],
+        "plane": [300, -1, 0, 200],
         "limits": None,
         "cut": (80, None),
         "type": "wyko",
     },
     "6": {
         "time": 45.22,
-        "plane": [60, -1, 0, -1],
+        "plane": [300, -1, 0, -1],
         "limits": None,
         "type": "wyko",
     },
     "7": {
         "time": 60.27,
-        "plane": [33, 95, 60, -1],
+        "plane": [160, 480, 300, -1],
         "limits": None,
         "type": "wyko",
     },
     "8a": {
         "time": 35.52,
-        "plane": [85, -1, 0, 70],
+        "plane": [430, -1, 0, 360],
         "limits": None,
         "type": "wyko",
     },
     "8b": {
         "time": 40.07,
-        "plane": [80, -1, 5, 80],
+        "plane": [400, -1, 30, 440],
         "limits": None,
         "type": "wyko",
     },
     "8c": {
         "time": 50.18,
-        "plane": [0, 50, 0, 36],
+        "plane": [0, -1, 0, 130],
         "limits": None,
         "type": "wyko",
     },
@@ -119,15 +98,15 @@ config = {
     },
     "2": {
         "time": 31.58,
-        "plane": [30, -1, 60, -1],
+        "plane": [200, -1, 350, -1],
     },
     "3": {
         "time": 45.82,
-        "plane": [30, -1, 60, -1],
+        "plane": [200, -1, 300, -1],
 
     },
     "4": {
         "time": 60.03,
-        "plane": [0, 20, 20, 60],
+        "plane": [0, 100, 100, 300],
     },
 }

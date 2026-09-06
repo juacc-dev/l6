@@ -13,15 +13,14 @@ from util import (
 
 
 def raw(file):
-    z, pixel_size = read_csv(file)
+    z, _ = read_csv(file)
 
-    plot.colormap(z, pixel_size, title=file.stem)
+    plot.colormap(z, 1, title=file.stem, units="pixels")
     plt.tight_layout()
     show_or_save()
 
 
 def inspect_cut(file):
-    # z, _, pixel_size = get_z(file)
     z, pixel_size = read_csv(file)
     cut = config[file.stem]["cut"]
 
@@ -46,7 +45,7 @@ def inspect_cut(file):
 def show_2D(file):
     z, _, pixel_size = get_z(file)
 
-    plot.colormap(-z, pixel_size)
+    plot.colormap(-z * 1e9, pixel_size)
     plt.title(file)
     plt.tight_layout()
     show_or_save()
@@ -55,7 +54,7 @@ def show_2D(file):
 def show_3D(file):
     z, _, pixel_size = get_z(file)
 
-    plot.surface(-z, pixel_size=pixel_size, title=f"Muestra {file.stem}")
+    plot.surface(-z * 1e9, pixel_size=pixel_size, title=f"Muestra {file.stem}")
     plt.tight_layout()
     show_or_save()
 
@@ -83,12 +82,13 @@ def hist(file):
 
 
 def full_hist(file):
-    z, _, _ = get_z(file)
+    # z, _, _ = get_z(file)
+    z, _ = read_csv(file)
 
     z_hist = filter_nan(z)
 
     _, ax = plt.subplots(1, 1)
-    ax.hist(z_hist, bins=1000, density=True)
+    ax.hist(z_hist * 1e9, bins=1000, density=True)
     ax.yaxis.set_major_formatter(PercentFormatter(xmax=1))
     ax.set(
         xlabel="Profundidad [nm]",
@@ -151,4 +151,5 @@ def print_bottom(file):
     _, z_low, _ = get_z(file)
 
     bottom, err, _, _ = get_bottom(z_low)
+
     print(f"{file.stem}: z = {bottom:.1f} +- {err:.1f}")

@@ -17,6 +17,7 @@ from commands import (
     show_2D,
     show_3D,
 )
+from util import estimate_high_region
 from rate import linear_fit
 
 # https://en.wikipedia.org/wiki/Spectral_density
@@ -54,6 +55,9 @@ def do_file(command, file):
 
         case "fullhist":
             full_hist(file)
+
+        case "test":
+            estimate_high_region(file)
 
         case _:
             logger.error(f"Invalid command '{command}'")
