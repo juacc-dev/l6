@@ -17,6 +17,7 @@ pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*([\s\w]*)
 class ContactPair:
     # Una medición de un par de contactos
     muestra: str
+    nombre_incompleto: str
     nombre_completo: str
     ancho: float
     contactos: str
@@ -55,13 +56,15 @@ def get_params(df, filename):
     m, b, m_err, b_err = linear_fit(df)
 
     nombre = f"{muestra}-{ancho_canal}"
+    nombre_comentario = nombre
 
     if comment != "":
-        nombre += f" ({comment})"
+        nombre_comentario += f" ({comment})"
 
     params = ContactPair(
         muestra=muestra,
-        nombre_completo=nombre,
+        nombre_incompleto=nombre,
+        nombre_completo=nombre_comentario,
         ancho=ancho_canal,
         contactos=pares,
         dist=dist,
