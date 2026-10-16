@@ -16,6 +16,7 @@ pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*([\s\w]*)
 @dataclass
 class ContactPair:
     # Una medición de un par de contactos
+    df: pd.DataFrame
     muestra: str
     nombre_incompleto: str
     nombre_completo: str
@@ -62,6 +63,7 @@ def get_params(df, filename):
         nombre_comentario += f" ({comment})"
 
     params = ContactPair(
+        df=df,
         muestra=muestra,
         nombre_incompleto=nombre,
         nombre_completo=nombre_comentario,
@@ -123,6 +125,7 @@ def optimal_rectangle(n):
 def plot_grid(datasets):
     # optimal rectangle of plots
     nrows, ncols = optimal_rectangle(len(datasets))
+    print(nrows, ncols)
 
     _, axes = plt.subplots(
         nrows,
@@ -138,3 +141,51 @@ def plot_grid(datasets):
         axes[row, col].set_visible(False)
 
     return axes
+
+
+def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
+    ax.set(
+        xlabel=r"Distancia [$\mu$m]",
+        ylabel=r"Resistencia [k$\Omega$]",
+        title=title,
+    )
+
+    if is_bad:
+        ax.title.set_color("red")
+
+    by_muestra = group_by(datasets, "nombre_completo")
+
+    for muestra, grouped in by_muestra.items():
+        dist, r, r_err = unpack(grouped)
+        ax.errorbar(dist, r / 1000, yerr=r_err / 1000, fmt=".", label=muestra)
+
+    fit = m * dist + b
+
+    ax.plot(dist, fit / 1000)
+
+    if len(by_muestra) > 1:
+        ax.legend()
+
+
+def plot_iv_curves(ax, muestra, pairs):
+    ax.set(
+        xlabel=r"Corriente [$A$m]",
+        ylabel=r"Tensión [$V$]",
+        title=rf"{muestra} @ {props.temp[muestra]}$\degree$C",
+    )
+
+    for pair in pairs:
+        i = pair.df["Corriente"]
+        v = pair.df["Tensión"]
+        v_fit = pair.r * i + pair.intercept
+
+        (line,) = ax.plot(i, v, ".")
+
+        ax.plot(
+            i,
+            v_fit,
+            color=line.get_color(),
+            label=f"{pair.contactos} ({pair.dist})",
+        )
+
+    ax.legend()

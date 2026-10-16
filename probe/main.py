@@ -18,30 +18,6 @@ plt.rcParams["legend.loc"] = "best"
 DIR = Path("./data/data/ETH/")
 
 
-def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
-    ax.set(
-        xlabel=r"Distancia [$\mu$m]",
-        ylabel=r"Resistencia [k$\Omega$]",
-        title=title,
-    )
-
-    if is_bad:
-        ax.title.set_color("red")
-
-    by_muestra = util.group_by(datasets, "nombre_completo")
-
-    for muestra, grouped in by_muestra.items():
-        dist, r, r_err = util.unpack(grouped)
-        ax.errorbar(dist, r / 1000, yerr=r_err / 1000, fmt=".", label=muestra)
-
-    fit = m * dist + b
-
-    ax.plot(dist, fit / 1000)
-
-    if len(by_muestra) > 1:
-        ax.legend()
-
-
 pairs = []  # Pares de contactos
 
 # Import files
@@ -54,9 +30,6 @@ for file in DIR.rglob("*_0"):
 
 # Diccionario agrupado por nombre:
 by_name = util.group_by(pairs, "nombre_incompleto")
-
-# Sort by temperature
-by_name = dict(sorted(by_name.items()))
 
 axes = util.plot_grid(by_name)
 nrows, ncols = axes.shape
@@ -100,7 +73,7 @@ for i, (nombre, grouped) in enumerate(by_name.items()):
         + rf"$R_c$ = ({r_c / 2:.1e} $\pm$ {r_c_err / 2:.1e}) $\Omega$"
     )
 
-    plot_fit(
+    util.plot_fit(
         ax=axes[row, col],
         datasets=grouped,
         title=title,
