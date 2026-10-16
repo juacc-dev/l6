@@ -76,7 +76,7 @@ def get_params(df, filename):
         r_err=m_err,
         intercept=b,
         int_err=b_err,
-        extra={}
+        extra={},
     )
 
     return params
@@ -168,10 +168,10 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
         ax.legend()
 
 
-def plot_iv_curves(ax, muestra, temp, pairs):
+def plot_iv_curves(ax, muestra, temp, pairs, fmt='-'):
     ax.set(
-        xlabel=r"Corriente [$A$]",
-        ylabel=r"Tensión [$V$]",
+        xlabel=r"Corriente [$\mu$A]",
+        ylabel=r"Tensión [mV]",
         title=rf"{muestra} @ {temp}$\degree$C",
     )
 
@@ -180,13 +180,22 @@ def plot_iv_curves(ax, muestra, temp, pairs):
         v = pair.df["Tensión"]
         v_fit = pair.r * i + pair.intercept
 
-        (line,) = ax.plot(i, v, ".")
+        i *= 1e6
+        v *= 1e3
+        v_fit *= 1e3
+
+        (line,) = ax.plot(
+            i,
+            v,
+            fmt,
+            label=f"{pair.contactos} ({pair.dist})",
+        )
 
         ax.plot(
             i,
             v_fit,
             color=line.get_color(),
-            label=f"{pair.contactos} ({pair.dist})",
+            alpha=0.4,
         )
 
     ax.legend()
@@ -227,7 +236,7 @@ def plot_r_c_fit(ax, pairs, result):
     if result is not None:
         fit = m * dist + b
 
-        ax.plot(dist, fit)
+        ax.plot(dist, fit, color="black")
 
         if len(by_muestra) > 1:
             ax.legend()

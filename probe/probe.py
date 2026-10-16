@@ -44,7 +44,7 @@ muestra = pairs[0].nombre_incompleto
 temp = pairs[0].temp
 _, ax = plt.subplots(1, 2, figsize=(16, 8))
 
-util.plot_iv_curves(ax[0], muestra, temp, pairs)
+util.plot_iv_curves(ax[0], muestra, temp, pairs, fmt='.')
 
 util.plot_r_c_fit(ax[1], pairs, result)
 
