@@ -170,7 +170,7 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
 
 def plot_iv_curves(ax, muestra, temp, pairs):
     ax.set(
-        xlabel=r"Corriente [$A$m]",
+        xlabel=r"Corriente [$A$]",
         ylabel=r"Tensión [$V$]",
         title=rf"{muestra} @ {temp}$\degree$C",
     )

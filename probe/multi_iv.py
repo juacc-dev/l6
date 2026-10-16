@@ -17,7 +17,7 @@ DIR = Path(sys.argv[1])
 pairs = []  # Pares de contactos
 
 # Import files
-for file in DIR.glob("*_0"):
+for file in DIR.rglob("*_0"):
     df = util.read_data(file)
     params = util.get_params(df, file.name)
 
