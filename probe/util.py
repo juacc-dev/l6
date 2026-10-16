@@ -125,7 +125,6 @@ def optimal_rectangle(n):
 def plot_grid(datasets):
     # optimal rectangle of plots
     nrows, ncols = optimal_rectangle(len(datasets))
-    print(nrows, ncols)
 
     _, axes = plt.subplots(
         nrows,
