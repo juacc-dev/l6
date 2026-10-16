@@ -34,9 +34,10 @@ for i, grouped in enumerate(by_name.values()):
     row = i // ncols
     col = i % ncols
 
-    muestra = grouped[0].muestra
+    muestra = grouped[0].nombre_incompleto
+    temp = grouped[0].temp
 
-    util.plot_iv_curves(axes[row, col], muestra, grouped)
+    util.plot_iv_curves(axes[row, col], muestra, temp, grouped)
 
 
 plt.tight_layout()

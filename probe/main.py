@@ -1,10 +1,14 @@
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pylabo
 import scipy.optimize
 import scipy.stats
 import util
+
+pylabo.defaults()
 
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["figure.dpi"] = 100
@@ -15,8 +19,13 @@ plt.rcParams["font.size"] = 9
 plt.rcParams["figure.figsize"] = (9, 7)
 plt.rcParams["legend.loc"] = "best"
 
-DIR = Path("./data/data/ETH/")
+if len(sys.argv) != 2:
+    print("Missing path!")
+    sys.exit()
 
+
+
+DIR = Path(sys.argv[1])
 
 pairs = []  # Pares de contactos
 
@@ -97,5 +106,5 @@ plt.rcParams["figure.figsize"] = (5, 4)
 plt.errorbar(temps, contactos / 1000, contactos_err / 1000, fmt="o")
 plt.xlabel(r"Temperatura [$\degree$C]")
 plt.ylabel(r"Resistencia de contacto [k$\Omega$]")
-
+plt.tight_layout()
 plt.show()

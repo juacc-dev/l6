@@ -10,7 +10,7 @@ import props
 import scipy.optimize
 import scipy.stats
 
-pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*([\s\w]*)_0")
+pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*(.*)_0")
 
 
 @dataclass
@@ -28,6 +28,7 @@ class ContactPair:
     r_err: float
     intercept: float
     int_err: float
+    extra: dict
 
 
 def linear_fit(df):
@@ -75,6 +76,7 @@ def get_params(df, filename):
         r_err=m_err,
         intercept=b,
         int_err=b_err,
+        extra={}
     )
 
     return params
@@ -166,11 +168,11 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
         ax.legend()
 
 
-def plot_iv_curves(ax, muestra, pairs):
+def plot_iv_curves(ax, muestra, temp, pairs):
     ax.set(
         xlabel=r"Corriente [$A$m]",
         ylabel=r"Tensión [$V$]",
-        title=rf"{muestra} @ {props.temp[muestra]}$\degree$C",
+        title=rf"{muestra} @ {temp}$\degree$C",
     )
 
     for pair in pairs:
@@ -188,3 +190,44 @@ def plot_iv_curves(ax, muestra, pairs):
         )
 
     ax.legend()
+
+
+def r_c_fit(pairs):
+    dist, r, r_err = unpack(pairs)
+
+    # No se puede ajustar una recta con un solo punto
+    if len(dist) <= 1:
+        return None
+
+    result = scipy.stats.linregress(dist, r)
+    return result
+
+
+def plot_r_c_fit(ax, pairs, result):
+    by_muestra = group_by(pairs, "nombre_completo")
+
+    if result is not None:
+        m = result.slope
+        m_err = result.stderr
+        b = result.intercept
+        b_err = result.intercept_stderr
+        ax.set_title(rf"$R_c = (${b:.1e}$\pm${b_err:.1e}$)\Omega$")
+
+    ax.set(
+        xlabel=r"Distancia [$\mu$m]",
+        ylabel=r"Resistencia [$\Omega$]",
+    )
+
+    for muestra, grouped in by_muestra.items():
+        dist, r, r_err = unpack(grouped)
+        ax.errorbar(dist, r, yerr=r_err, fmt="o", label=muestra)
+        for x, y, yerr in zip(dist, r, r_err):
+            ax.text(x, y, rf"{y:.1e} $\pm$ {yerr:.1e}")
+
+    if result is not None:
+        fit = m * dist + b
+
+        ax.plot(dist, fit)
+
+        if len(by_muestra) > 1:
+            ax.legend()
