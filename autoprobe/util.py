@@ -125,6 +125,7 @@ def optimal_rectangle(n):
 def plot_grid(datasets):
     # optimal rectangle of plots
     nrows, ncols = optimal_rectangle(len(datasets))
+    print(nrows, ncols)
 
     _, axes = plt.subplots(
         nrows,
@@ -137,7 +138,7 @@ def plot_grid(datasets):
     for i in range(len(datasets), nrows * ncols):
         row = i // ncols
         col = i % ncols
-    axes[row, col].set_visible(False)
+        axes[row, col].set_visible(False)
 
     return axes
 
@@ -164,3 +165,27 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
 
     if len(by_muestra) > 1:
         ax.legend()
+
+
+def plot_iv_curves(ax, muestra, pairs):
+    ax.set(
+        xlabel=r"Corriente [$A$m]",
+        ylabel=r"Tensión [$V$]",
+        title=rf"{muestra} @ {props.temp[muestra]}$\degree$C",
+    )
+
+    for pair in pairs:
+        i = pair.df["Corriente"]
+        v = pair.df["Tensión"]
+        v_fit = pair.r * i + pair.intercept
+
+        (line,) = ax.plot(i, v, ".")
+
+        ax.plot(
+            i,
+            v_fit,
+            color=line.get_color(),
+            label=f"{pair.contactos} ({pair.dist})",
+        )
+
+    ax.legend()

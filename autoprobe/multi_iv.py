@@ -8,31 +8,6 @@ import scipy.optimize
 import scipy.stats
 import util
 
-
-def plot_iv_curves(ax, muestra, pairs):
-    ax.set(
-        xlabel=r"Corriente [$A$m]",
-        ylabel=r"Tensión [$V$]",
-        title=rf"{muestra} @ {props.temp[muestra]}$\degree$C",
-    )
-
-    for pair in pairs:
-        i = pair.df["Corriente"]
-        v = pair.df["Tensión"]
-        v_fit = pair.r * i + pair.intercept
-
-        (line,) = ax.plot(i, v, ".")
-
-        ax.plot(
-            i,
-            v_fit,
-            color=line.get_color(),
-            label=f"{pair.contactos} ({pair.dist})",
-        )
-
-    ax.legend()
-
-
 if len(sys.argv) != 2:
     print("Missing path!")
     sys.exit()
@@ -61,7 +36,7 @@ for i, grouped in enumerate(by_name.values()):
 
     muestra = grouped[0].muestra
 
-    plot_iv_curves(axes[row, col], muestra, grouped)
+    util.plot_iv_curves(axes[row, col], muestra, grouped)
 
 
 plt.tight_layout()
