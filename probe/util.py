@@ -135,6 +135,6 @@ def plot_grid(datasets):
     for i in range(len(datasets), nrows * ncols):
         row = i // ncols
         col = i % ncols
-    axes[row, col].set_visible(False)
+        axes[row, col].set_visible(False)
 
     return axes
