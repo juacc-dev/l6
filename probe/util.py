@@ -221,19 +221,19 @@ def plot_r_c_fit(ax, pairs, result):
 
     ax.set(
         xlabel=r"Distancia [$\mu$m]",
-        ylabel=r"Resistencia [$\Omega$]",
+        ylabel=r"Resistencia [k$\Omega$]",
     )
 
     for muestra, grouped in by_muestra.items():
         dist, r, r_err = unpack(grouped)
-        ax.errorbar(dist, r, yerr=r_err, fmt="o", label=muestra)
+        ax.errorbar(dist, r/1000, yerr=r_err/1000, fmt="o", label=muestra)
         for x, y, yerr in zip(dist, r, r_err):
-            ax.text(x, y, rf"{y:.1e} $\pm$ {yerr:.1e}")
+            ax.text(x, y/1000, muestra)
 
     if result is not None:
         fit = m * dist + b
 
-        ax.plot(dist, fit, color="black")
+        ax.plot(dist, fit/1000, color="black")
 
         if len(by_muestra) > 1:
             ax.legend()
