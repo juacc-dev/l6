@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import math
 import re
 from collections import defaultdict
@@ -96,8 +97,11 @@ def read_data(file):
 
 def group_by(array, prop):
     by_prop = defaultdict(list)
+
     for obj in array:
         by_prop[getattr(obj, prop)].append(obj)
+
+    by_prop = dict(sorted(by_prop.items()))
 
     return by_prop
 
@@ -124,16 +128,20 @@ def optimal_rectangle(n):
     return nrows, ncols
 
 
-def plot_grid(datasets):
+def plot_grid(datasets, title=None, **kwargs):
     # optimal rectangle of plots
     nrows, ncols = optimal_rectangle(len(datasets))
 
-    _, axes = plt.subplots(
+    fig, axes = plt.subplots(
         nrows,
         ncols,
         figsize=(4 * ncols, 3 * nrows),
         squeeze=False,
+        **kwargs,
     )
+
+    if title is not None:
+        fig.suptitle(title, fontsize=18)
 
     # hide unused plots
     for i in range(len(datasets), nrows * ncols):
@@ -145,11 +153,6 @@ def plot_grid(datasets):
 
 
 def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
-    ax.set(
-        xlabel=r"Distancia [$\mu$m]",
-        ylabel=r"Resistencia [k$\Omega$]",
-        title=title,
-    )
 
     if is_bad:
         ax.title.set_color("red")
@@ -168,13 +171,7 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
         ax.legend()
 
 
-def plot_iv_curves(ax, muestra, temp, pairs, fmt='-'):
-    ax.set(
-        xlabel=r"Corriente [$\mu$A]",
-        ylabel=r"Tensión [mV]",
-        title=rf"{muestra} @ {temp}$\degree$C",
-    )
-
+def plot_iv_curves(ax, muestra, temp, pairs, fmt="-"):
     for pair in pairs:
         i = pair.df["Corriente"]
         v = pair.df["Tensión"]
@@ -195,7 +192,7 @@ def plot_iv_curves(ax, muestra, temp, pairs, fmt='-'):
             i,
             v_fit,
             color=line.get_color(),
-            alpha=0.4,
+            alpha=0.3,
         )
 
     ax.legend()
