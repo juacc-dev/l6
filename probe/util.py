@@ -13,6 +13,16 @@ import scipy.stats
 
 pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*(.*)_0")
 
+R_MAX = 100e3
+
+
+@dataclass
+class Result:
+    slope: float
+    intercept: float
+    stderr: float
+    intercept_stderr: float
+
 
 @dataclass
 class ContactPair:
@@ -24,6 +34,7 @@ class ContactPair:
     ancho: float
     contactos: str
     dist: float
+    dist_err: float
     temp: float
     r: float
     r_err: float
@@ -55,8 +66,12 @@ def get_params(df, filename):
 
     temp = props.temp[muestra]
     dist = props.dist_entre_contactos[pares]
+    dist_err = props.dist_err_dict[pares]
 
     m, b, m_err, b_err = linear_fit(df)
+
+    if m > R_MAX:
+        return None
 
     nombre = f"{muestra}-{ancho_canal}"
     nombre_comentario = nombre
@@ -72,6 +87,7 @@ def get_params(df, filename):
         ancho=ancho_canal,
         contactos=pares,
         dist=dist,
+        dist_err=dist_err,
         temp=temp,
         r=m,
         r_err=m_err,
@@ -108,17 +124,24 @@ def group_by(array, prop):
 
 def unpack(pairs):
     dist = []
+    dist_err = []
     r = []
     r_err = []
 
     for pair in pairs:
         dist.append(pair.dist)
+        dist_err.append(pair.dist_err)
         r.append(pair.r)
         r_err.append(pair.r_err)
 
     idx_sort = np.argsort(dist)
 
-    return np.array(dist)[idx_sort], np.array(r)[idx_sort], np.array(r_err)[idx_sort]
+    return (
+        np.array(dist)[idx_sort],
+        np.array(dist_err)[idx_sort],
+        np.array(r)[idx_sort],
+        np.array(r_err)[idx_sort],
+    )
 
 
 def optimal_rectangle(n):
@@ -160,8 +183,15 @@ def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
     by_muestra = group_by(datasets, "nombre_completo")
 
     for muestra, grouped in by_muestra.items():
-        dist, r, r_err = unpack(grouped)
-        ax.errorbar(dist, r / 1000, yerr=r_err / 1000, fmt=".", label=muestra)
+        dist, dist_err, r, r_err = unpack(grouped)
+        ax.errorbar(
+            dist,
+            r / 1000,
+            xerr=dist_err,
+            yerr=r_err / 1000,
+            fmt=".",
+            label=muestra,
+        )
 
     fit = m * dist + b
 
@@ -199,7 +229,7 @@ def plot_iv_curves(ax, muestra, temp, pairs, fmt="-"):
 
 
 def r_c_fit(pairs):
-    dist, r, r_err = unpack(pairs)
+    dist, _, r, r_err = unpack(pairs)
 
     # No se puede ajustar una recta con un solo punto
     if len(dist) <= 1:
@@ -207,6 +237,31 @@ def r_c_fit(pairs):
 
     result = scipy.stats.linregress(dist, r)
     return result
+
+
+def r_c_fit2(pairs):
+    dist, dist_err, r, _ = unpack(pairs)
+
+    # No se puede ajustar una recta con un solo punto
+    if len(dist) <= 1:
+        return None
+
+    # El error más grande es en la distancia
+    p_opt, p_cov = scipy.optimize.curve_fit(
+        lambda y, a, b: a * (y - b),
+        r,
+        dist,
+        sigma=dist_err,
+        absolute_sigma=True,
+    )
+    p_err = np.sqrt(np.diag(p_cov))
+
+    b = p_opt[1]
+    b_err = p_err[1]
+    m = 1 / p_opt[0]
+    m_err = p_err[0] / np.abs(m)
+
+    return Result(slope=m, intercept=b, stderr=m_err, intercept_stderr=b_err)
 
 
 def plot_r_c_fit(ax, pairs, result):
@@ -225,15 +280,15 @@ def plot_r_c_fit(ax, pairs, result):
     )
 
     for muestra, grouped in by_muestra.items():
-        dist, r, r_err = unpack(grouped)
-        ax.errorbar(dist, r/1000, yerr=r_err/1000, fmt="o", label=muestra)
+        dist, _, r, r_err = unpack(grouped)
+        ax.errorbar(dist, r / 1000, yerr=r_err / 1000, fmt="o", label=muestra)
         for x, y, yerr in zip(dist, r, r_err):
-            ax.text(x, y/1000, muestra)
+            ax.text(x, y / 1000, muestra)
 
     if result is not None:
         fit = m * dist + b
 
-        ax.plot(dist, fit/1000, color="black")
+        ax.plot(dist, fit / 1000, color="black")
 
         if len(by_muestra) > 1:
             ax.legend()

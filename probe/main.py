@@ -62,15 +62,15 @@ for i, (nombre, grouped) in enumerate(by_name.items()):
     row = i // ncols
     col = i % ncols
 
-    dist, r, r_err = util.unpack(grouped)
+    dist, _, r, r_err = util.unpack(grouped)
     temp = grouped[0].temp
 
-    # No se puede ajustar una recta con un solo punto
-    if len(dist) <= 1:
+    result = util.r_c_fit(grouped)
+
+    if result is None:
         axes[row, col].set_visible(False)
         continue
 
-    result = scipy.stats.linregress(dist, r)
     m = result.slope
     r_c = result.intercept
     r_c_err = result.intercept_stderr
