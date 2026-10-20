@@ -19,6 +19,24 @@ plt.rcParams["font.size"] = 10
 plt.rcParams["figure.figsize"] = (9, 7)
 plt.rcParams["legend.loc"] = "best"
 
+
+def plot_rc(ax, nombre, grouped, result, is_bad):
+    # if result is None:
+    #     axes[row, col].set_visible(False)
+    #     return
+
+    if is_bad:
+        ax.title.set_color("red")
+
+    if col == 0:
+        ax.set(ylabel=r"Resistencia [k$\Omega$]")
+
+    if row == ncols - 1:
+        ax.set(xlabel=r"Distancia [$\mu$m]")
+
+    util.plot_fit(ax, grouped, result)
+
+
 if len(sys.argv) == 1:
     print("Missing path!")
     sys.exit()
@@ -62,56 +80,23 @@ for i, (nombre, grouped) in enumerate(by_name.items()):
     row = i // ncols
     col = i % ncols
 
-    dist, _, r, r_err = util.unpack(grouped)
+    dist, r, r_err = util.unpack(grouped)
     temp = grouped[0].temp
 
     result = util.r_c_fit(grouped)
 
-    if result is None:
-        axes[row, col].set_visible(False)
-        continue
+    is_bad = True
+    if result is not None:
+        r_c = result.intercept / 2
 
-    m = result.slope
-    r_c = result.intercept
-    r_c_err = result.intercept_stderr
+        if r_c > 0 and r_c < 1e4:
+            muestras.append(nombre)
+            temps.append(temp)
+            contactos.append(r_c)
+            contactos_err.append(result.intercept_stderr / 2)
+            is_bad = False
 
-    if r_c > 0 and r_c < 1e4:
-        is_bad = False
-
-        muestras.append(nombre)
-        temps.append(temp)
-        contactos.append(r_c)
-        contactos_err.append(r_c_err)
-
-    else:
-        is_bad = True
-
-    title = (
-        rf"{nombre} @ $T$ = {temp}$\degree$C"
-        + "\n"
-        + rf"$R_c$ = ({r_c / 2:.1e} $\pm$ {r_c_err / 2:.1e}) $\Omega$"
-    )
-    ax = axes[row, col]
-
-    ax.set(
-        title=title,
-    )
-    if col == 0:
-        ax.set(ylabel=r"Resistencia [k$\Omega$]")
-
-    if row == ncols - 1:
-        ax.set(xlabel=r"Distancia [$\mu$m]")
-
-    util.plot_fit(
-        ax=ax,
-        datasets=grouped,
-        title=title,
-        dist=dist,
-        r=r,
-        m=m,
-        b=r_c,
-        is_bad=is_bad,
-    )
+    plot_rc(axes[row, col], nombre, grouped, result, is_bad=is_bad)
 
 plt.tight_layout()
 plt.show()

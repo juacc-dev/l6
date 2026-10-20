@@ -34,7 +34,6 @@ class ContactPair:
     ancho: float
     contactos: str
     dist: float
-    dist_err: float
     temp: float
     r: float
     r_err: float
@@ -66,7 +65,6 @@ def get_params(df, filename):
 
     temp = props.temp[muestra]
     dist = props.dist_entre_contactos[pares]
-    dist_err = props.dist_err_dict[pares]
 
     m, b, m_err, b_err = linear_fit(df)
 
@@ -87,7 +85,6 @@ def get_params(df, filename):
         ancho=ancho_canal,
         contactos=pares,
         dist=dist,
-        dist_err=dist_err,
         temp=temp,
         r=m,
         r_err=m_err,
@@ -124,13 +121,11 @@ def group_by(array, prop):
 
 def unpack(pairs):
     dist = []
-    dist_err = []
     r = []
     r_err = []
 
     for pair in pairs:
         dist.append(pair.dist)
-        dist_err.append(pair.dist_err)
         r.append(pair.r)
         r_err.append(pair.r_err)
 
@@ -138,7 +133,6 @@ def unpack(pairs):
 
     return (
         np.array(dist)[idx_sort],
-        np.array(dist_err)[idx_sort],
         np.array(r)[idx_sort],
         np.array(r_err)[idx_sort],
     )
@@ -175,32 +169,6 @@ def plot_grid(datasets, title=None, **kwargs):
     return axes
 
 
-def plot_fit(ax, datasets, title, dist, r, m, b, is_bad):
-
-    if is_bad:
-        ax.title.set_color("red")
-
-    by_muestra = group_by(datasets, "nombre_completo")
-
-    for muestra, grouped in by_muestra.items():
-        dist, dist_err, r, r_err = unpack(grouped)
-        ax.errorbar(
-            dist,
-            r / 1000,
-            xerr=dist_err,
-            yerr=r_err / 1000,
-            fmt=".",
-            label=muestra,
-        )
-
-    fit = m * dist + b
-
-    ax.plot(dist, fit / 1000)
-
-    if len(by_muestra) > 1:
-        ax.legend()
-
-
 def plot_iv_curves(ax, muestra, temp, pairs, fmt="-"):
     for pair in pairs:
         i = pair.df["Corriente"]
@@ -229,7 +197,7 @@ def plot_iv_curves(ax, muestra, temp, pairs, fmt="-"):
 
 
 def r_c_fit(pairs):
-    dist, _, r, r_err = unpack(pairs)
+    dist, r, r_err = unpack(pairs)
 
     # No se puede ajustar una recta con un solo punto
     if len(dist) <= 1:
@@ -239,40 +207,59 @@ def r_c_fit(pairs):
     return result
 
 
-def r_c_fit2(pairs):
-    dist, dist_err, r, _ = unpack(pairs)
 
-    # No se puede ajustar una recta con un solo punto
-    if len(dist) <= 1:
-        return None
+def plot_fit(ax, datasets, result):
+    by_muestra = group_by(datasets, "nombre_completo")
 
-    # El error más grande es en la distancia
-    p_opt, p_cov = scipy.optimize.curve_fit(
-        lambda y, a, b: a * (y - b),
-        r,
-        dist,
-        sigma=dist_err,
-        absolute_sigma=True,
-    )
-    p_err = np.sqrt(np.diag(p_cov))
+    temp = datasets[0].temp
+    nombre = datasets[0].nombre_incompleto
 
-    b = p_opt[1]
-    b_err = p_err[1]
-    m = 1 / p_opt[0]
-    m_err = p_err[0] / np.abs(m)
+    for muestra, grouped in by_muestra.items():
+        dist,  r, r_err = unpack(grouped)
+        ax.errorbar(
+            dist,
+            r / 1000,
+            yerr=r_err / 1000,
+            fmt=".",
+            label=muestra,
+        )
 
-    return Result(slope=m, intercept=b, stderr=m_err, intercept_stderr=b_err)
+    if result is not None:
+        fit = result.slope * dist + result.intercept
+
+        m = result.slope
+        m_err = result.stderr
+        b = result.intercept
+        b_err = result.intercept_stderr
+
+        sheet = float(m) * float(datasets[0].ancho)
+        sheet_err = float(m_err) * float(datasets[0].ancho)
+
+        fit = m * dist + b
+        ax.plot(dist, fit / 1000)
+
+        ax.set_title(
+            rf"{nombre} @ $T$ = {temp}$\degree$C"
+            + "\n"
+            + rf"$R_c$ = ({b / 2:.1e} $\pm$ {b_err / 2:.1e}) $\Omega$"
+            + "\n"
+            + r"$R_\text"
+            + "{sheet}"
+            + rf"$ = ({sheet:.1e} $\pm$ {sheet_err:.1e}) $\Omega$"
+        )
+
+    else:
+        ax.set_title(rf"{nombre} @ $T$ = {temp}$\degree$C")
+
+    if len(by_muestra) > 1:
+        ax.legend()
 
 
 def plot_r_c_fit(ax, pairs, result):
     by_muestra = group_by(pairs, "nombre_completo")
 
-    if result is not None:
-        m = result.slope
-        m_err = result.stderr
-        b = result.intercept
-        b_err = result.intercept_stderr
-        ax.set_title(rf"$R_c = (${b:.1e}$\pm${b_err:.1e}$)\Omega$")
+    temp = pairs[0].temp
+    nombre = pairs[0].nombre_incompleto
 
     ax.set(
         xlabel=r"Distancia [$\mu$m]",
@@ -280,15 +267,30 @@ def plot_r_c_fit(ax, pairs, result):
     )
 
     for muestra, grouped in by_muestra.items():
-        dist, _, r, r_err = unpack(grouped)
-        ax.errorbar(dist, r / 1000, yerr=r_err / 1000, fmt="o", label=muestra)
+        dist, r, r_err = unpack(grouped)
+        ax.errorbar(
+            dist,
+            r / 1000,
+            yerr=r_err / 1000,
+            fmt="o",
+            label=muestra,
+        )
         for x, y, yerr in zip(dist, r, r_err):
             ax.text(x, y / 1000, muestra)
 
     if result is not None:
-        fit = m * dist + b
+        m = result.slope
+        b = result.intercept
+        b_err = result.intercept_stderr
 
+        fit = m * dist + b
         ax.plot(dist, fit / 1000, color="black")
 
-        if len(by_muestra) > 1:
-            ax.legend()
+        ax.set_title(
+            rf"{nombre} @ $T$ = {temp}$\degree$C"
+            + "\n"
+            + rf"$R_c$ = ({b / 2:.1e} $\pm$ {b_err / 2:.1e}) $\Omega$"
+        )
+
+    if len(by_muestra) > 1:
+        ax.legend()

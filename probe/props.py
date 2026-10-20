@@ -22,22 +22,9 @@ temp = {
     "TEST#5": 580,
 }
 
-# dist_entre_contactos = {
-#     "1y2": 500,
-#     "2y3": 200,
-#     "3y4": 150,
-#     "4y5": 100,
-# }
-# dist_entre_contactos = {
-#     "1y2": 190,
-#     "2y3": 87,
-#     "3y4": 68,
-#     "4y5": 29,
-# }
-
-pares = ["4y5", "3y4", "2y3", "1y2"]
-dist = [77.76907055, 179.17737673, 230.87416189, 494.47143254]
-dist_err = np.array([1.34251393, 3.40998324, 3.45807, 10.50552932])
-
-dist_entre_contactos = {par: d for par, d in zip(pares, dist)}
-dist_err_dict = {par: err for par, err in zip(pares, dist_err)}
+dist_entre_contactos = {
+    "1y2": 480,
+    "2y3": 230,
+    "3y4": 180,
+    "4y5": 80,
+}
