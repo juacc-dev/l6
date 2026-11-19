@@ -11,7 +11,8 @@ import props
 import scipy.optimize
 import scipy.stats
 
-pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*(.*)_0")
+# pattern = re.compile(r"([\w#\d]+)\s-\s(\d+)um\s-\scontactos\s(\dy\d)\s*(.*)_0")
+pattern = re.compile(r"([\w#\d]+)\s-\scontactos\s(\dy\d)\s*(.*)_0")
 
 R_MAX = 100e3
 
@@ -59,9 +60,11 @@ def get_params(df, filename):
         return None
 
     muestra = match.group(1)
-    ancho_canal = match.group(2)
-    pares = match.group(3)
-    comment = match.group(4)
+    # ancho_canal = match.group(2)
+    no_ancho = True
+    ancho_canal = 20
+    pares = match.group(2)
+    comment = match.group(3)
 
     temp = props.temp[muestra]
     dist = props.dist_entre_contactos[pares]
@@ -71,7 +74,10 @@ def get_params(df, filename):
     if m > R_MAX:
         return None
 
-    nombre = f"{muestra}-{ancho_canal}"
+    nombre = f"{muestra}"
+    if not no_ancho:
+        nombre += f"-{ancho_canal}"
+
     nombre_comentario = nombre
 
     if comment != "":
@@ -183,7 +189,7 @@ def plot_iv_curves(ax, muestra, temp, pairs, fmt="-"):
             i,
             v,
             fmt,
-            label=f"{pair.contactos} ({pair.dist})",
+            label=fr"{pair.dist}$ \mu$m",
         )
 
         ax.plot(
@@ -239,7 +245,8 @@ def plot_fit(ax, datasets, result):
         ax.plot(dist, fit / 1000)
 
         ax.set_title(
-            rf"{nombre} @ $T$ = {temp}$\degree$C"
+            # rf"$T$ = {temp}$\degree$C"
+            f"{datasets[0].nombre_completo}"
             + "\n"
             + rf"$R_c$ = ({b / 2:.1e} $\pm$ {b_err / 2:.1e}) $\Omega$"
             + "\n"
@@ -249,7 +256,8 @@ def plot_fit(ax, datasets, result):
         )
 
     else:
-        ax.set_title(rf"{nombre} @ $T$ = {temp}$\degree$C")
+        # ax.set_title(rf"$T$ = {temp}$\degree$C")
+        ax.set_title(f"{nombre}")
 
     if len(by_muestra) > 1:
         ax.legend()
@@ -287,7 +295,8 @@ def plot_r_c_fit(ax, pairs, result):
         ax.plot(dist, fit / 1000, color="black")
 
         ax.set_title(
-            rf"{nombre} @ $T$ = {temp}$\degree$C"
+            # rf"$T$ = {temp}$\degree$C"
+            f"{pairs[0].nombre_completo}"
             + "\n"
             + rf"$R_c$ = ({b / 2:.1e} $\pm$ {b_err / 2:.1e}) $\Omega$"
         )

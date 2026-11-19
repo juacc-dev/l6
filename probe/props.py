@@ -20,6 +20,10 @@ temp = {
     "TEST#3": 550,
     "TEST#4": 520,
     "TEST#5": 580,
+    "410C": 410,
+    "420C": 420,
+    "430C": 430,
+    "440C": 440,
 }
 
 dist_entre_contactos = {
@@ -28,3 +32,14 @@ dist_entre_contactos = {
     "3y4": 180,
     "4y5": 80,
 }
+
+
+camino_al_canal = 170
+
+dist_entre_contactos = {
+    "1y2": 680 + camino_al_canal,
+    "2y3": 380 + camino_al_canal,
+    "3y4": 330 + camino_al_canal,
+    "4y5": 280 + camino_al_canal,
+}
+

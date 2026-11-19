@@ -66,7 +66,7 @@ for file in DIR.rglob("*_0"):
 
 
 # Diccionario agrupado por nombre:
-by_name = util.group_by(pairs, "nombre_incompleto")
+by_name = util.group_by(pairs, "nombre_completo")
 
 axes = util.plot_grid(by_name, title=title1, sharex=True)
 nrows, ncols = axes.shape
